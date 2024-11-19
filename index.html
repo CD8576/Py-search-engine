@@ -3,13 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Search Engine</title>
+    <meta name="description" content="A minimal search engine interface using DuckDuckGo">
+    <title>DuckDuckGo Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #5d5d5d;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #3b3b3b;
+        }
+    </style>
 </head>
 <body>
-    <h1>Search Engine</h1>
-    <form action="/search" method="get">
-        <input type="text" name="query" placeholder="Enter search term" required>
-        <button type="submit">Search</button>
+    <h1>DuckDuckGo Search</h1>
+    <form onsubmit="return searchWeb()">
+        <input type="text" id="searchQuery" placeholder="Enter your query here..." required>
+        <input type="submit" value="Search">
     </form>
+
+    <script>
+        function searchWeb() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (query) {
+                const searchUrl = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+                window.location.href = searchUrl;
+            }
+            return false; // Prevent the form from submitting
+        }
+    </script>
 </body>
 </html>
