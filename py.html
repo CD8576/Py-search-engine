@@ -56,7 +56,7 @@ crawl_and_index()
 # Route for the homepage (search form)
 @app.route('/')
 def home():
-    return render_template('search.html')
+    return render_template('index.html')
 
 # Route for search results
 @app.route('/search', methods=['GET'])
