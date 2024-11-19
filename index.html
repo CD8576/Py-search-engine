@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python in HTML</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython.min.js"></script>
+</head>
+<body onload="brython()">
+    <h1>Hello from Brython</h1>
+    <button id="run-button">Run Python Code</button>
+
+    <script type="text/python">
+     import requests
+from bs4 import BeautifulSoup
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+
+# Dictionary to store indexed pages
+index = {}
+
+# Simple web crawler function
+def crawl(url):
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        return soup.get_text()
+    except Exception as e:
+        print(f"Error crawling {url}: {e}")
+        return ""
+
+# Function to index a web page
+def index_page(url, content):
+    index[url] = content
+
+# Simple search function (matches query with content)
+def search(query):
+    results = []
+    for url, content in index.items():
+        if query.lower() in content.lower():
+            results.append(url)
+    return results
+
+# Crawling and indexing example (this can be extended with more URLs)
+def crawl_and_index():
+    urls_to_crawl = ['https://example.com', 'https://www.python.org']  # Add more URLs to crawl here
+    for url in urls_to_crawl:
+        content = crawl(url)
+        if content:
+            index_page(url, content)
+
+# Initialize the index with crawled data
+crawl_and_index()
+
+# Route for the homepage (search form)
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+# Route for search results
+@app.route('/search', methods=['GET'])
+def search_page():
+    query = request.args.get('query')
+    if query:
+        results = search(query)
+    else:
+        results = []
+    return render_template('results.html', results=results)
+
+# Run the Flask app
+if __name__ == '__main__':
+    app.run(debug=True)
+
+    </script>
+</body>
+</html>
