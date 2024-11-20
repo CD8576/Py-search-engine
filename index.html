@@ -1,66 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A minimal search engine interface using DuckDuckGo">
-    <title>DuckDuckGo Search</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f9f9f9;
-        }
-        h1 {
-            color: #333;
-        }
-        form {
-            margin-top: 20px;
-        }
-        input[type="text"] {
-            width: 300px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        input[type="submit"] {
-            padding: 10px 20px;
-            margin-left: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: #5d5d5d;
-            color: #fff;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #3b3b3b;
-        }
-    </style>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 </head>
 <body>
-    <h1>DuckDuckGo Search</h1>
-    <form onsubmit="return searchWeb()">
-        <input type="text" id="searchQuery" placeholder="Enter your query here..." required>
-        <input type="submit" value="Search">
-    </form>
+    <py-script>
+import socket
+from urllib.parse import urlparse
+import re
 
-    <script>
-        function searchWeb() {
-            const query = document.getElementById('searchQuery').value.trim();
-            if (query) {
-                const searchUrl = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-                window.location.href = searchUrl;
-            }
-            return false; // Prevent the form from submitting
-        }
-    </script>
+class SimpleWebSearchEngine:
+    def __init__(self):
+        self.index = {}
+
+    def fetch_html(self, url):
+        """Fetch HTML content from a given URL."""
+        parsed_url = urlparse(url)
+        host = parsed_url.netloc
+        path = parsed_url.path if parsed_url.path else '/'
+        
+        # Open a socket to the web server
+        with socket.create_connection((host, 80), timeout=10) as sock:
+            # Send HTTP GET request
+            request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
+            sock.sendall(request.encode('utf-8'))
+            
+            # Read the response
+            response = b""
+            while chunk := sock.recv(4096):
+                response += chunk
+
+        # Extract HTML content after headers
+        return response.split(b"\r\n\r\n", 1)[1].decode('utf-8', errors='ignore')
+
+    def extract_text(self, html):
+        """Extract text content from HTML (basic tag removal)."""
+        return re.sub(r'<[^>]+>', '', html)
+
+    def index_page(self, url):
+        """Crawl and index a single page."""
+        print(f"Indexing {url}...")
+        try:
+            html = self.fetch_html(url)
+            text = self.extract_text(html)
+            words = re.findall(r'\w+', text.lower())  # Tokenize text
+            for word in set(words):  # Use set to avoid duplicates
+                self.index.setdefault(word, []).append(url)
+        except Exception as e:
+            print(f"Failed to index {url}: {e}")
+
+    def search(self, query):
+        """Search for a query in the index."""
+        query_words = query.lower().split()
+        results = {url for word in query_words if word in self.index for url in self.index[word]}
+        return results
+
+    def run_cli(self):
+        """Run a simple CLI for indexing and searching."""
+        while True:
+            command = input("Enter command (index [URL], search [query], exit): ").strip()
+            if command.startswith("index "):
+                _, url = command.split(" ", 1)
+                self.index_page(url)
+            elif command.startswith("search "):
+                _, query = command.split(" ", 1)
+                results = self.search(query)
+                print("Results:")
+                for result in results:
+                    print(result)
+            elif command == "exit":
+                print("Exiting.")
+                break
+            else:
+                print("Invalid command.")
+
+# Run the search engine
+if __name__ == "__main__":
+    search_engine = SimpleWebSearchEngine()
+    search_engine.run_cli()
+
+    </py-script>
 </body>
 </html>
