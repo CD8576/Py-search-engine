@@ -1,85 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+<script async src="https://cse.google.com/cse.js?cx=63da934a188e14e50">
+</script>
 </head>
 <body>
-    <py-script>
-import socket
-from urllib.parse import urlparse
-import re
-
-class SimpleWebSearchEngine:
-    def __init__(self):
-        self.index = {}
-
-    def fetch_html(self, url):
-        """Fetch HTML content from a given URL."""
-        parsed_url = urlparse(url)
-        host = parsed_url.netloc
-        path = parsed_url.path if parsed_url.path else '/'
-        
-        # Open a socket to the web server
-        with socket.create_connection((host, 80), timeout=10) as sock:
-            # Send HTTP GET request
-            request = f"GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
-            sock.sendall(request.encode('utf-8'))
-            
-            # Read the response
-            response = b""
-            while chunk := sock.recv(4096):
-                response += chunk
-
-        # Extract HTML content after headers
-        return response.split(b"\r\n\r\n", 1)[1].decode('utf-8', errors='ignore')
-
-    def extract_text(self, html):
-        """Extract text content from HTML (basic tag removal)."""
-        return re.sub(r'<[^>]+>', '', html)
-
-    def index_page(self, url):
-        """Crawl and index a single page."""
-        print(f"Indexing {url}...")
-        try:
-            html = self.fetch_html(url)
-            text = self.extract_text(html)
-            words = re.findall(r'\w+', text.lower())  # Tokenize text
-            for word in set(words):  # Use set to avoid duplicates
-                self.index.setdefault(word, []).append(url)
-        except Exception as e:
-            print(f"Failed to index {url}: {e}")
-
-    def search(self, query):
-        """Search for a query in the index."""
-        query_words = query.lower().split()
-        results = {url for word in query_words if word in self.index for url in self.index[word]}
-        return results
-
-    def run_cli(self):
-        """Run a simple CLI for indexing and searching."""
-        while True:
-            command = input("Enter command (index [URL], search [query], exit): ").strip()
-            if command.startswith("index "):
-                _, url = command.split(" ", 1)
-                self.index_page(url)
-            elif command.startswith("search "):
-                _, query = command.split(" ", 1)
-                results = self.search(query)
-                print("Results:")
-                for result in results:
-                    print(result)
-            elif command == "exit":
-                print("Exiting.")
-                break
-            else:
-                print("Invalid command.")
-
-# Run the search engine
-if __name__ == "__main__":
-    search_engine = SimpleWebSearchEngine()
-    search_engine.run_cli()
-
-    </py-script>
+<center>
+    <div class="gcse-searchbox-only"></div>
+</center>
 </body>
 </html>
